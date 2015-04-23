@@ -31,12 +31,12 @@ void Spline::setInterpPts(int* p_points, int p_count){
 }
 
 // Find the XY coordinate for Bezier spline at parameter p_t. Uses spline object's own control points. Public function.
-void Spline::getLoc(float p_t, matrix p_output){
-	getLoc(p_t, m_ctrl_pts);
+void Spline::getLoc(int p_t, int p_point, float** p_output){
+	getLoc(p_t, m_ctrl_pts, p_point, p_output);
 }
 
 // Find the XY coordinate for Bezier spline at parameter p_t given control point p_points. p_points must be a float matrix. Private function.
-void Spline::getLoc(float p_t, matrix p_points, matrix p_output){
+void Spline::getLoc(int p_t, matrix p_points, int p_point, float** p_output){
 
 	const int COLUMNS = 2;	// Number of values to represent an XY point
 
@@ -47,16 +47,15 @@ void Spline::getLoc(float p_t, matrix p_points, matrix p_output){
 	while (curve_count > 0){
 		for (byte r = 0; r < curve_count; r++){
 			for (byte c = 0; c < COLUMNS; c++){
-				float temp = (1.0 - p_t) * p_points.getValue(r, c) + p_t * p_points.getValue(r + 1, c);
+				int temp = (100 - p_t) * p_points.getValue(r, c) + p_t * p_points.getValue(r + 1, c);
 				p_points.setValue(r, c, temp);
 			}
 		}
 		curve_count--;
 	}
-
-	p_output.initFloat(1, 2);
-	p_output.setValue(0, 0, p_points.getValue(0, 0));
-	p_output.setValue(0, 1, p_points.getValue(0, 1));
+	
+	p_output[p_point][0] = (float)p_points.getValue(0, 0) / 100.0;
+	p_output[p_point][1] = (float)p_points.getValue(0, 1) / 100.0;
 
 }
 
@@ -103,8 +102,8 @@ void Spline::solveControlPnts(){
 	matrix temp_ctrl_pts;
 	matrix::mult(inv_diag141, constants, temp_ctrl_pts);
 
-	// Save to control points float matrix, including first and last interpolation points
-	m_ctrl_pts.initFloat(m_interp_pts.rowCount(), 2);
+	// Save to control points matrix, including first and last interpolation points
+	m_ctrl_pts.init(m_interp_pts.rowCount(), 2);
 	for (byte r = 0; r < m_ctrl_pts.rowCount(); r++){
 		for (byte c = 0; c < m_ctrl_pts.colCount(); c++){
 			if (r == 0 || r == m_ctrl_pts.rowCount() - 1)
@@ -120,9 +119,9 @@ int Spline::whichCurve(){
 }
 
 void Spline::printInterpPts(){
-	m_interp_pts.print("Interpolation points");
+	m_interp_pts.print(true);
 }
 
 void Spline::printCtrlPts(){
-	m_ctrl_pts.print("Control Points");
+	m_ctrl_pts.print(true);
 }

@@ -10,7 +10,7 @@ class Spline
 		Spline();
 		void init();
 		void setInterpPts(int* p_points, int p_count);
-		void getLoc(float p_t, matrix p_output);
+		void getLoc(int p_t, int p_point, float** p_output);
 		void getVel(int p_t);
 		void getAccel(int p_t);
 
@@ -22,7 +22,7 @@ class Spline
 		matrix m_ctrl_pts;
 		void solveControlPnts();
 		int whichCurve();
-		void getLoc(float p_t, matrix p_points, matrix p_output);
+		void getLoc(int p_t, matrix p_points, int p_point, float** p_output);
 
 };
 #endif
