@@ -10,20 +10,23 @@ class Spline
 		Spline();
 		void init();
 		void setInterpPts(int* p_points, int p_count);
-		void getLoc(int p_t, int p_point, float** p_output);
+		void getCurvePts(int p_point_count);
 		void getVel(int p_t);
 		void getAccel(int p_t);
 
 		void printInterpPts();
 		void printCtrlPts();
+		void printCurvePts();
 
 	private:
-		matrix m_interp_pts;
-		matrix m_ctrl_pts;
-		void solveControlPnts();
-		int whichCurve();
-		void getLoc(int p_t, matrix p_points, int p_point, float** p_output);
-
+		matrix		m_interp_pts;
+		matrix		m_b_ctrl_pts;
+		matrix*		m_bez_ctrl_pts;
+		floatMatrix m_curve_pts;
+		int			m_bez_count;
+		void		solveBsplineCtlPnts();
+		void		solveBezCtrlPts();
+		int			whichCurve();
 };
 #endif
 
