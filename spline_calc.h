@@ -9,7 +9,7 @@ class Spline
 	public:
 		Spline();
 		void init();
-		void setInterpPts(float* p_points, int p_count);
+		void setInterpPts(float* p_points);
 		void getCurvePts(int p_point_count);
 		void getVel(float p_t);
 		void getAccel(float p_t);
