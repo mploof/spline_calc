@@ -9,7 +9,7 @@
 
 void Spline::init()
 {
-	m_bez_ctrl_pts = NULL;
+	//m_bez_ctrl_pts = NULL;
 
 }
 
@@ -18,42 +18,31 @@ Spline::Spline() {
 }
 
 
-void Spline::setInterpPts(float* p_points){
-
-	// Determine the number of interpolation points
-	// The last entry in the set should be -1, 0 
-	// (x coord can be any negative number) to indicate 
-	// the end of the array
-	int count = 0;
-	byte i = 0;
-
-	while (true){
-		// If the current point is negative, we're at the end of the array
-		if (p_points[i] < 0){
-			count = floor((float)i / 2.0);
-			break;
-		}
-		i++;
 	}
+}
 
-	Serial.print("Ponts counted: ");
-	Serial.println (count);
-	if (count == 3) {
-		Serial.println("Can't use 3 points. Don't know why, but it doesn't work.");
+void Spline::setInterpPts(float* p_points, int p_count){	
+
+	//Com.print("Ponts counted: ");
+	//Com.println (count);
+	if (p_count == 3) {
+		//Com.println("Can't use 3 points. Don't know why, but it doesn't work.");
 		return;
 	}
-
-	// Initialize the interpolation points matrix
-	m_interp_pts.init(count, 2);
 	
-	// Set the 1D array as the new interpolation pofloat matrix
-	m_interp_pts.setValues(p_points, count * 2);
-
+	// Initialize the interpolation points matrix
+	m_interp_pts.init(p_count, 2);
+		
+	// Set the 1D array as the new interpolation point matrix
+	m_interp_pts.setValues(p_points, p_count * 2);
+	
 	// Solve for the B-spline control points
 	solveBsplineCtlPnts();
-
+	
 	// Solve for the Bezier control points
 	solveBezCtrlPts();
+	
+	
 }
 
 void Spline::solveBezCtrlPts(){
@@ -64,12 +53,12 @@ void Spline::solveBezCtrlPts(){
 	// Determine how many curves comprise the spline
 	m_bez_count = m_b_ctrl_pts.rowCount() - 1;
 
-	// If memory for the bezier points has already been allocated, free it before reallocating
-	if (m_bez_ctrl_pts != NULL)
-		delete[] m_bez_ctrl_pts;
+	//// If memory for the bezier points has already been allocated, free it before reallocating
+	//if (m_bez_ctrl_pts != NULL)
+	//	free(m_bez_ctrl_pts);
 
-	// Allocate memory for Bezier control point matrix and initialize matricies
-	m_bez_ctrl_pts = new matrix[m_bez_count];
+	//// Allocate memory for Bezier control point matrix and initialize matricies
+	//m_bez_ctrl_pts = (matrix *)malloc(m_bez_count * sizeof(matrix));
 	for (byte i = 0; i < m_bez_count; i++){
 		m_bez_ctrl_pts[i].init(BEZ_PNT_CNT, XY_COL);
 	}
@@ -109,9 +98,9 @@ void Spline::solveBezCtrlPts(){
 }
 
 // Find the XY coordinate for Bezier spline at parameter p_t
-void Spline::getCurvePts(int p_point_count){
+void Spline::calcCurvePts(int p_point_count){
 	
-	//Serial.println("Getting curve points");
+	//Com.println("Getting curve points");
 	const int XY_COL = 2;			// Number of values to represent an XY point
 
 	// If the output matrix isn't the right size, reinitialize it
@@ -153,11 +142,11 @@ void Spline::getAccel(float p_t){
 
 // Finds B-spline control points
 void Spline::solveBsplineCtlPnts(){
-
+	
 	float inv_1_row = 0.25;
 
-	// Create a 141 matrix with order interpolation pofloat count - 2
-	matrix diag141(m_interp_pts.rowCount() - 2, m_interp_pts.rowCount() - 2);
+	// Create a 141 matrix with order interpolation point count - 2
+	matrix diag141(m_interp_pts.rowCount() - 2, m_interp_pts.rowCount() - 2);	
 	diag141.set141();
 	
 	// Find inverse of 141 matrix
@@ -168,7 +157,7 @@ void Spline::solveBsplineCtlPnts(){
 
 	// Create a matrix to hold the constants for solving the control points
 	matrix constants(m_interp_pts.rowCount() - 2, 2);
-
+	
 	
 	// Set the constant values based upon interpolation points
 	for (byte r = 0; r < constants.rowCount(); r++){
@@ -186,7 +175,7 @@ void Spline::solveBsplineCtlPnts(){
 				constants.setValue(r, c, 6 * m_interp_pts.getValue(r + 1, c));
 		}
 	}
-
+	
 	// Solve for the control points
 	matrix temp_ctrl_pts;
 	if (diag141.rowCount() > 1)
@@ -196,6 +185,7 @@ void Spline::solveBsplineCtlPnts(){
 	
 	// Save to control points matrix, including first and last interpolation points
 	m_b_ctrl_pts.init(m_interp_pts.rowCount(), 2);
+	
 	for (byte r = 0; r < m_b_ctrl_pts.rowCount(); r++){
 		for (byte c = 0; c < m_b_ctrl_pts.colCount(); c++){
 			if (r == 0 || r == m_b_ctrl_pts.rowCount() - 1)
@@ -203,7 +193,7 @@ void Spline::solveBsplineCtlPnts(){
 			else
 				m_b_ctrl_pts.setValue(r, c, temp_ctrl_pts.getValue(r - 1, c));
 		}
-	}
+	}	
 }
 
 void Spline::printInterpPts(bool p_monitor){
@@ -225,4 +215,13 @@ void Spline::printCurvePts(bool p_monitor){
 		m_curve_pts.print("Curve points");
 	else
 		m_curve_pts.print();
+}
+
+float Spline::getCurvePntVal(int p_row, int p_col){
+
+	if (p_row > m_curve_pts.rowCount() || p_row < 0 
+		|| p_col > m_curve_pts.colCount() || p_col < 0)
+		return;
+
+	return m_curve_pts.getValue(p_row, p_col);
 }
