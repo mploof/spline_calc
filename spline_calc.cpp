@@ -17,10 +17,6 @@ Spline::Spline() {
 	
 }
 
-
-	}
-}
-
 void Spline::setInterpPts(float* p_points, int p_count){	
 
 	//Com.print("Ponts counted: ");
@@ -136,6 +132,38 @@ void Spline::calcCurvePts(int p_point_count){
 	}
 }
 
+// Find the XY coordinate for Bezier spline at parameter p_t
+float Spline::calcCurvePt(int p_point_count, int p_which){
+
+	//Com.println("Getting curve points");
+	const int XY_COL = 2;			// Number of values to represent an XY point
+	int r;
+	int c;
+
+	boolean x;															// Indicates whether this is an X or Y coord		
+	if (p_which % 2 == 0){
+		x = true;
+		p_which = p_which / 2;
+		c = 0;
+	}
+	else {
+		x = false;		
+		p_which = (p_which - 1) / 2;
+		c = 1;
+	}
+	r = p_which;
+		
+	float increment = (float)m_bez_count / (float)(p_point_count - 1);	// Amount by which t should increment
+	float t = p_which * increment;										// Current t value
+	int bezier = floor(t);												// Current curve being operated upon
+	t -= (int)(floor(t));
+
+	// Compute the XY location for the current t parameter value
+	float loc = pow((1 - t), 3) * m_bez_ctrl_pts[bezier].getValue(0, c) + 3 * pow((1 - t), 2) * t * m_bez_ctrl_pts[bezier].getValue(1, c) +
+		3 * (1 - t) * pow(t, 2) * m_bez_ctrl_pts[bezier].getValue(2, c) + pow(t, 3) * m_bez_ctrl_pts[bezier].getValue(3, c);
+	return loc;
+}
+
 void Spline::getAccel(float p_t){
 
 }
@@ -154,10 +182,10 @@ void Spline::solveBsplineCtlPnts(){
 	if (diag141.rowCount() > 1){
 		matrix::inverse(diag141, inv_diag141);
 	}
-
+	
 	// Create a matrix to hold the constants for solving the control points
 	matrix constants(m_interp_pts.rowCount() - 2, 2);
-	
+
 	
 	// Set the constant values based upon interpolation points
 	for (byte r = 0; r < constants.rowCount(); r++){
@@ -221,7 +249,7 @@ float Spline::getCurvePntVal(int p_row, int p_col){
 
 	if (p_row > m_curve_pts.rowCount() || p_row < 0 
 		|| p_col > m_curve_pts.colCount() || p_col < 0)
-		return;
+		return -5000;
 
 	return m_curve_pts.getValue(p_row, p_col);
 }

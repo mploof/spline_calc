@@ -11,6 +11,7 @@ class Spline
 		void init();
 		void setInterpPts(float* p_points, int p_count);
 		void calcCurvePts(int p_point_count);
+		float calcCurvePt(int p_point_count, int p_which);
 		void getVel(float p_t);
 		void getAccel(float p_t);
 
