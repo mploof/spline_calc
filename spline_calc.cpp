@@ -132,20 +132,28 @@ void Spline::calcCurvePts(int p_point_count){
 	}
 }
 
-// Find the XY coordinate for Bezier spline at parameter p_t
+/** Find the XY coordinate for Bezier spline at parameter p_t
+*
+*	@param p_point_count -- Total number of points to be calculated for this curve
+*	@param p_which		 -- Which point / coordinate to calculate. X coordinate = point * 2, Y coordinate = point * 2 + 1
+*
+*/
 float Spline::calcCurvePt(int p_point_count, int p_which){
 
 	//Com.println("Getting curve points");
 	const int XY_COL = 2;			// Number of values to represent an XY point
-	int r;
-	int c;
+	int r;							// Which point on the spline (row)
+	int c;							// X or Y coordinate	(col)
 
-	boolean x;															// Indicates whether this is an X or Y coord		
+	boolean x;						// Indicates whether this is an X or Y coord		
+
+	// If it's an even number then we're looking at the X coordinate
 	if (p_which % 2 == 0){
 		x = true;
 		p_which = p_which / 2;
 		c = 0;
 	}
+	// Otherwise we're calculating the Y coordinate
 	else {
 		x = false;		
 		p_which = (p_which - 1) / 2;
@@ -167,6 +175,19 @@ float Spline::calcCurvePt(int p_point_count, int p_which){
 	float loc = pow((1 - t), 3) * m_bez_ctrl_pts[bezier].getValue(0, c) + 3 * pow((1 - t), 2) * t * m_bez_ctrl_pts[bezier].getValue(1, c) +
 		3 * (1 - t) * pow(t, 2) * m_bez_ctrl_pts[bezier].getValue(2, c) + pow(t, 3) * m_bez_ctrl_pts[bezier].getValue(3, c);
 	return loc;
+}
+
+float Spline::getVel(int p_point_count, int p_which){
+	coord point_0;
+	coord point_1;
+
+	point_0.x = calcCurvePt(p_point_count, p_which * 2);
+	point_0.y = calcCurvePt(p_point_count, p_which * 2 + 1);
+	point_1.x = calcCurvePt(p_point_count, p_which * 2 + 2);
+	point_1.y = calcCurvePt(p_point_count, p_which * 2 + 3);
+
+	float vel = (point_1.y - point_0.y) / (point_1.x - point_0.x);
+	return vel;
 }
 
 void Spline::getAccel(float p_t){
