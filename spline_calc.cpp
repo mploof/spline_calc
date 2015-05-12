@@ -158,6 +158,11 @@ float Spline::calcCurvePt(int p_point_count, int p_which){
 	int bezier = floor(t);												// Current curve being operated upon
 	t -= (int)(floor(t));
 
+	// If this is the last point, force t to be the 
+	// end of the curve so we get an accurate end point
+	if (p_which == p_point_count)
+		t = 1;
+
 	// Compute the XY location for the current t parameter value
 	float loc = pow((1 - t), 3) * m_bez_ctrl_pts[bezier].getValue(0, c) + 3 * pow((1 - t), 2) * t * m_bez_ctrl_pts[bezier].getValue(1, c) +
 		3 * (1 - t) * pow(t, 2) * m_bez_ctrl_pts[bezier].getValue(2, c) + pow(t, 3) * m_bez_ctrl_pts[bezier].getValue(3, c);
